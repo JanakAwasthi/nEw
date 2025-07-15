@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Scanner - LinkToQR.me</title>
+    <meta name="description" content="Scan documents using your camera or upload images. AI-powered document detection and enhancement.">    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../shared-styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/opencv.js/4.5.5/opencv.js"></script>
+    <style>
+        .camera-container {
+            position: relative;
+            max-width: 100%;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+        .corner-marker {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #3b82f6;
+        }
+        .corner-marker.top-left {
+            top: 20px;
+            left: 20px;
+            border-right: none;
+            border-bottom: none;
+        }
+        .corner-marker.top-right {
+            top: 20px;
+            right: 20px;
+            border-left: none;
+            border-bottom: none;
+        }
+        .corner-marker.bottom-left {
+            bottom: 20px;
+            left: 20px;
+            border-right: none;
+            border-top: none;
+        }
+        .corner-marker.bottom-right {
+            bottom: 20px;
+            right: 20px;
+            border-left: none;
+            border-top: none;
+        }        .enhancement-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+        }
+        .enhancement-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+        .document-preview {
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s ease;
+        }
+        .document-preview.enhanced {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="../../index.html" class="text-2xl font-bold text-blue-600">LinkToQR.me</a>
+                    <span class="ml-4 text-gray-500">/</span>
+                    <span class="ml-2 text-gray-700">Document Scanner</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="../../index.html" class="text-gray-600 hover:text-blue-600 transition-colors">
+                        <i class="fas fa-home mr-2"></i>Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Document Scanner</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Scan documents using your camera or upload images. Advanced AI-powered document detection and enhancement.
+            </p>
+        </div>
+
+        <!-- Scanner Options -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <!-- Camera Scan -->
+                <div class="text-center">
+                    <div class="bg-blue-50 rounded-lg p-6 mb-4">
+                        <i class="fas fa-camera text-4xl text-blue-600 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Camera Scan</h3>
+                        <p class="text-gray-600 mb-4">Use your device camera to scan documents in real-time</p>
+                        <button id="startCameraBtn" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-camera mr-2"></i>Start Camera
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Upload Image -->
+                <div class="text-center">
+                    <div class="bg-green-50 rounded-lg p-6 mb-4">
+                        <i class="fas fa-upload text-4xl text-green-600 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Upload Image</h3>
+                        <p class="text-gray-600 mb-4">Upload an existing image to scan for documents</p>
+                        <input type="file" id="imageInput" accept="image/*" class="hidden">
+                        <button id="uploadBtn" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+                            <i class="fas fa-folder-open mr-2"></i>Browse Files
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Camera Interface -->
+            <div id="cameraInterface" class="hidden">
+                <div class="camera-container mb-4">
+                    <video id="cameraVideo" autoplay playsinline class="w-full h-auto"></video>
+                    <canvas id="cameraCanvas" class="hidden"></canvas>
+                    <div class="scan-overlay">
+                        <div class="corner-marker top-left"></div>
+                        <div class="corner-marker top-right"></div>
+                        <div class="corner-marker bottom-left"></div>
+                        <div class="corner-marker bottom-right"></div>
+                    </div>
+                </div>
+                <div class="flex justify-center space-x-4 mb-4">
+                    <button id="captureBtn" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-camera mr-2"></i>Capture
+                    </button>
+                    <button id="stopCameraBtn" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-stop mr-2"></i>Stop Camera
+                    </button>
+                </div>
+            </div>
+
+            <!-- Document Preview -->
+            <div id="documentPreview" class="hidden">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Scanned Document</h3>
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <!-- Original Image -->
+                    <div>
+                        <h4 class="text-md font-medium text-gray-700 mb-2">Original</h4>
+                        <div class="document-preview rounded-lg p-4 bg-gray-50">
+                            <img id="originalImage" class="w-full h-auto rounded-lg" alt="Original">
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Image -->
+                    <div>
+                        <h4 class="text-md font-medium text-gray-700 mb-2">Enhanced</h4>
+                        <div class="document-preview enhanced rounded-lg p-4">
+                            <img id="enhancedImage" class="w-full h-auto rounded-lg" alt="Enhanced">
+                            <canvas id="processCanvas" class="hidden"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enhancement Controls -->
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h4 class="text-md font-medium text-gray-700 mb-4">Enhancement Options</h4>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        <!-- Brightness -->
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Brightness</label>
+                            <input type="range" id="brightnessSlider" class="enhancement-slider" min="-50" max="50" value="0">
+                            <span id="brightnessValue" class="text-xs text-gray-500">0</span>
+                        </div>
+
+                        <!-- Contrast -->
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Contrast</label>
+                            <input type="range" id="contrastSlider" class="enhancement-slider" min="-50" max="50" value="0">
+                            <span id="contrastValue" class="text-xs text-gray-500">0</span>
+                        </div>
+
+                        <!-- Sharpness -->
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Sharpness</label>
+                            <input type="range" id="sharpnessSlider" class="enhancement-slider" min="0" max="100" value="0">
+                            <span id="sharpnessValue" class="text-xs text-gray-500">0</span>
+                        </div>
+
+                        <!-- Threshold -->
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Black & White</label>
+                            <input type="range" id="thresholdSlider" class="enhancement-slider" min="0" max="255" value="128">
+                            <span id="thresholdValue" class="text-xs text-gray-500">128</span>
+                        </div>
+                    </div>
+
+                    <!-- Filter Presets -->
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <button class="filter-preset bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300" data-preset="original">Original</button>
+                        <button class="filter-preset bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300" data-preset="document">Document</button>
+                        <button class="filter-preset bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300" data-preset="blackwhite">Black & White</button>
+                        <button class="filter-preset bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300" data-preset="grayscale">Grayscale</button>
+                        <button class="filter-preset bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300" data-preset="vivid">Vivid</button>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap gap-3">
+                        <button id="autoEnhanceBtn" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                            <i class="fas fa-magic mr-2"></i>Auto Enhance
+                        </button>
+                        <button id="downloadImageBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            <i class="fas fa-download mr-2"></i>Download Image
+                        </button>
+                        <button id="downloadPdfBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="fas fa-file-pdf mr-2"></i>Download PDF
+                        </button>
+                        <button id="newScanBtn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>New Scan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing Status -->
+            <div id="processingStatus" class="hidden text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+                <p class="text-gray-600">Processing document...</p>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="text-blue-600 text-2xl mb-3">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Smart Detection</h3>
+                <p class="text-gray-600">Automatically detects document edges and corrects perspective</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="text-blue-600 text-2xl mb-3">
+                    <i class="fas fa-adjust"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Advanced Enhancement</h3>
+                <p class="text-gray-600">Real-time enhancement with multiple filter options</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="text-blue-600 text-2xl mb-3">
+                    <i class="fas fa-file-export"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Multiple Formats</h3>
+                <p class="text-gray-600">Export as high-quality images or PDF documents</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p>&copy; 2024 LinkToQR.me. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../shared-utils.js"></script>
+    <script src="../universal-enhancements.js"></script>
+    <script src="document-scanner.js"></script>
+</body>
+</html>

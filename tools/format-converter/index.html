@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Format Converter - LinkToQR.me NEXUS</title>
+  
+  <!-- Favicon and App Icons -->
+  <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../favicon.ico">
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Advanced Format Converter tool - Convert between multiple file formats. Part of LinkToQR.me NEXUS toolkit.">
+  <meta name="keywords" content="format converter, file converter, image converter, audio converter, LinkToQR">
+  <meta name="author" content="LinkToQR.me NEXUS">
+  
+  <!-- Social Media Meta Tags -->
+  <meta property="og:title" content="Format Converter - LinkToQR.me NEXUS">
+  <meta property="og:description" content="Advanced Format Converter tool - Convert between multiple file formats.">
+  <meta property="og:image" content="../../favicon.ico">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Format Converter - LinkToQR.me NEXUS">
+  <meta name="twitter:description" content="Advanced Format Converter tool - Convert between multiple file formats.">
+  <meta name="twitter:image" content="../../favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared-styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.bundle.min.js"></script>
+  
+  <style>
+    :root {
+      --primary: #00d4ff;
+      --primary-dark: #0099cc;
+      --secondary: #ff0080;
+      --accent: #7c3aed;
+      --success: #00ff88;
+      --warning: #ffaa00;
+      --error: #ff0040;
+      --neon-blue: #00d4ff;
+      --neon-pink: #ff0080;
+      --neon-purple: #8000ff;
+      --dark-bg: #0a0a0a;
+      --dark-surface: #1a1a1a;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Exo 2', sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #000a1a 100%);
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .orbitron { font-family: 'Orbitron', monospace; }
+
+    /* Particles Background */
+    #particles-js {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    /* Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+    }
+
+    /* Cyber Buttons */
+    .cyber-button {
+      background: linear-gradient(45deg, var(--neon-blue), var(--neon-pink));
+      border: none;
+      border-radius: 25px;
+      padding: 12px 30px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .cyber-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+    }
+
+    /* Header */
+    .cyber-header {
+      background: rgba(10, 10, 10, 0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+    }
+
+    .logo-text {
+      background: linear-gradient(45deg, var(--neon-blue), var(--neon-pink));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .tool-container { 
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .input-field, select {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: white;
+      padding: 12px 16px;
+      width: 100%;
+    }
+
+    .input-field:focus, select:focus {
+      outline: none;
+      border-color: var(--neon-blue);
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+    }
+
+    .dropzone {
+      border: 3px dashed rgba(0, 212, 255, 0.5);
+      border-radius: 15px;
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .dropzone.active {
+      border-color: var(--neon-blue);
+      background: rgba(0, 212, 255, 0.1);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <!-- Particles Background -->
+  <div id="particles-js"></div>
+
+  <!-- Header -->
+  <header class="cyber-header sticky top-0 z-50 w-full py-4 mb-8">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex items-center justify-between">
+        <!-- Logo -->
+        <a href="../../index.html" class="flex items-center">
+          <span class="text-3xl font-bold logo-text orbitron">⚡ LinkToQR.me</span>
+          <span class="text-lg font-semibold text-gray-400 ml-2">NEXUS</span>
+        </a>
+
+        <!-- Tool Name -->
+        <div class="hidden md:block">
+          <span class="text-xl font-semibold text-cyan-400 orbitron">FORMAT CONVERTER</span>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex space-x-4">
+          <a href="../../index.html" class="cyber-button text-sm">
+            <i class="fas fa-home mr-2"></i>HOME
+          </a>
+          <a href="../qr-generator/index.html" class="cyber-button text-sm" style="background: linear-gradient(45deg, #ffaa00, #ff6b00);">
+            <i class="fas fa-qrcode mr-2"></i>QR TOOLS
+          </a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-16">
+    <!-- Hero Section -->
+    <div class="text-center mb-16">
+      <h1 class="text-6xl font-bold mb-6 orbitron" style="background: linear-gradient(45deg, var(--neon-blue), var(--neon-pink)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+        FORMAT CONVERTER
+      </h1>
+      <p class="text-xl text-gray-400 max-w-3xl mx-auto">
+        Convert between multiple file formats with advanced processing capabilities
+      </p>
+    </div>
+
+    <!-- Main Tool -->
+    <div class="max-w-4xl mx-auto">
+      <div class="tool-container p-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          <!-- Input Section -->
+          <div class="space-y-6">
+            <h2 class="text-2xl font-semibold text-white mb-4 orbitron">Input File</h2>
+            
+            <!-- File Upload Area -->
+            <div class="dropzone" id="dropzone">
+              <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+              <p class="text-lg font-medium text-gray-300 mb-2">Drag & Drop File Here</p>
+              <p class="text-sm text-gray-500 mb-4">or click to browse</p>
+              <input type="file" id="format-input" class="hidden">
+              <button onclick="document.getElementById('format-input').click()" class="cyber-button">
+                <i class="fas fa-folder-open mr-2"></i>Choose File
+              </button>
+            </div>
+
+            <!-- File Info -->
+            <div id="file-info" class="hidden glass p-4 rounded-lg">
+              <h3 class="text-lg font-medium text-white mb-2">File Information</h3>
+              <div id="file-details" class="text-gray-300"></div>
+            </div>
+          </div>
+
+          <!-- Output Section -->
+          <div class="space-y-6">
+            <h2 class="text-2xl font-semibold text-white mb-4 orbitron">Convert To</h2>
+            
+            <!-- Format Selection -->
+            <div class="space-y-4">
+              <label class="block text-sm font-medium text-gray-300">Output Format</label>
+              <select id="format-type" class="input-field">
+                <option value="">Select Format...</option>
+                <optgroup label="Images">
+                  <option value="jpg">JPG</option>
+                  <option value="png">PNG</option>
+                  <option value="webp">WebP</option>
+                  <option value="gif">GIF</option>
+                  <option value="bmp">BMP</option>
+                </optgroup>
+                <optgroup label="Documents">
+                  <option value="pdf">PDF</option>
+                  <option value="docx">DOCX</option>
+                  <option value="txt">TXT</option>
+                </optgroup>
+                <optgroup label="Audio">
+                  <option value="mp3">MP3</option>
+                  <option value="wav">WAV</option>
+                  <option value="ogg">OGG</option>
+                </optgroup>
+                <optgroup label="Video">
+                  <option value="mp4">MP4</option>
+                  <option value="webm">WebM</option>
+                  <option value="avi">AVI</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <!-- Convert Button -->
+            <button onclick="convertFormat()" class="cyber-button w-full text-lg" id="convert-btn" disabled>
+              <i class="fas fa-magic mr-2"></i>Convert File
+            </button>
+
+            <!-- Progress Bar -->
+            <div id="progress-container" class="hidden">
+              <div class="bg-gray-700 rounded-full h-3">
+                <div id="progress-bar" class="bg-gradient-to-r from-cyan-400 to-pink-400 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <p class="text-sm text-gray-400 mt-2 text-center">Converting...</p>
+            </div>
+
+            <!-- Result -->
+            <div id="format-result" class="hidden glass p-4 rounded-lg">
+              <h3 class="text-lg font-medium text-white mb-2">Conversion Complete</h3>
+              <div id="download-section"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="format-converter.js"></script>
+  
+  <!-- Particles.js -->
+  <script>
+    // Initialize particles
+    tsParticles.load("particles-js", {
+      background: { color: { value: "transparent" } },
+      fpsLimit: 120,
+      interactivity: {
+        events: {
+          onClick: { enable: true, mode: "push" },
+          onHover: { enable: true, mode: "repulse" },
+          resize: true,
+        },
+        modes: {
+          push: { quantity: 4 },
+          repulse: { distance: 200, duration: 0.4 },
+        },
+      },
+      particles: {
+        color: { value: ["#00d4ff", "#ff0080", "#8000ff"] },
+        links: {
+          color: "#00d4ff",
+          distance: 150,
+          enable: true,
+          opacity: 0.3,
+          width: 1,
+        },
+        collisions: { enable: true },
+        move: {
+          direction: "none",
+          enable: true,
+          outModes: { default: "bounce" },
+          random: false,
+          speed: 2,
+          straight: false,
+        },
+        number: { density: { enable: true, area: 800 }, value: 80 },
+        opacity: { value: 0.5 },
+        shape: { type: "circle" },
+        size: { value: { min: 1, max: 5 } },
+      },
+      detectRetina: true,
+    });
+
+    // File input handling
+    const fileInput = document.getElementById('format-input');
+    const dropzone = document.getElementById('dropzone');
+    const fileInfo = document.getElementById('file-info');
+    const fileDetails = document.getElementById('file-details');
+    const formatType = document.getElementById('format-type');
+    const convertBtn = document.getElementById('convert-btn');
+
+    fileInput.addEventListener('change', handleFileSelect);
+    formatType.addEventListener('change', updateConvertButton);
+
+    // Drag and drop
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('active');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('active');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('active');
+      fileInput.files = e.dataTransfer.files;
+      handleFileSelect();
+    });
+
+    function handleFileSelect() {
+      const file = fileInput.files[0];
+      if (file) {
+        fileInfo.classList.remove('hidden');
+        fileDetails.innerHTML = `
+          <p><strong>Name:</strong> ${file.name}</p>
+          <p><strong>Size:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+          <p><strong>Type:</strong> ${file.type || 'Unknown'}</p>
+        `;
+        updateConvertButton();
+      }
+    }
+
+    function updateConvertButton() {
+      const hasFile = fileInput.files.length > 0;
+      const hasFormat = formatType.value !== '';
+      convertBtn.disabled = !(hasFile && hasFormat);    }
+  </script>
+  <script src="../shared-utils.js"></script>
+  <script src="../universal-enhancements.js"></script>
+</body>
+</html>
